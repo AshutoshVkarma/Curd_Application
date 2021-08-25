@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<button class="btn btn-success" data-toggle="modal" data-target="#model_customer">Add Customer</button>
+<table class="table table-bordered table-hover" id="tbl_customer">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>Gender</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+</table>
+
+<div class="modal" tabindex="-1" role="dialog" id="model_customer"> 
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>Youre Name</label>
+                        <input type="text" class="form-control" />
+                    </div>
+                </form>
+            </div>
+            @*<div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>*@
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: '@Url.Action("GetCustomers","Home")', method: "Get", success: function (result) {
+                $("#tbl_customer").DataTable({
+                    data: result, columns: [
+                        { "data": "id" },
+                        {
+                            "data": "name", render: function (name, data, x) {
+                                if (x.gender == "Male")
+                                    return "Mr. " + name
+                                else if (x.gender == "Female")
+                                    return "Miss. " + name
+                                else
+                                    return name;
+                            }
+                        },
+                        { "data": "email" },
+                        { "data": "mobile" },
+                        { "data": "gender" },
+                        {
+                            "data": "id", render: function () {
+                                return "<a class='btn btn-danger'>delete</a>"
+                            }
+                        }
+                    ]
+
+                })
+            }
+        })
+    })
+</script>
+
