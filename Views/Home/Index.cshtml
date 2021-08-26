@@ -1,13 +1,16 @@
-﻿
+﻿@model Curd_Application.Models.Customer
 @{
     ViewBag.Title = "Index";
 }
+<h2>Customer CRUD Operations</h2>
 
-<button class="btn btn-success" data-toggle="modal" data-target="#model_customer">Add Customer</button>
+<button class="btn btn-success" style="margin-bottom:10px" onclick="Popupform('@Url.Action("AddCustomers", "Home")')">Add Customer</button>
+
+
 <table class="table table-bordered table-hover" id="tbl_customer">
     <thead>
         <tr>
-            <th>Id</th>
+            <th>Id</th> 
             <th>Name</th>
             <th>Email</th>
             <th>Mobile</th>
@@ -27,52 +30,115 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            @*<div class="modal-body">
                 <form>
                     <div class="form-group">
-                        <label>Youre Name</label>
-                        <input type="text" class="form-control" />
+                        <label>Name</label>
+                        @Html.TextBoxFor(a => a.name, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(a => a.name)
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        @Html.TextBoxFor(a => a.email, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(a => a.email)
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile No.</label>
+                        @Html.TextBoxFor(a => a.mobile, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(a => a.mobile)
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        @Html.TextBoxFor(a => a.gender, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(a => a.gender)
+                    </div>
+                    <div>
+                        <input type="submit" value="Save"  />
                     </div>
                 </form>
-            </div>
-            @*<div class="modal-footer">
-                <button type="button" class="btn btn-primary">Save changes</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>*@
         </div>
     </div>
 </div>
 
 <script>
+    var Popup, dataTable;
     $(document).ready(function () {
-        $.ajax({
-            url: '@Url.Action("GetCustomers","Home")', method: "Get", success: function (result) {
-                $("#tbl_customer").DataTable({
-                    data: result, columns: [
-                        { "data": "id" },
-                        {
-                            "data": "name", render: function (name, data, x) {
-                                if (x.gender == "Male")
-                                    return "Mr. " + name
-                                else if (x.gender == "Female")
-                                    return "Miss. " + name
-                                else
-                                    return name;
-                            }
-                        },
-                        { "data": "email" },
-                        { "data": "mobile" },
-                        { "data": "gender" },
-                        {
-                            "data": "id", render: function () {
-                                return "<a class='btn btn-danger'>delete</a>"
-                            }
-                        }
-                    ]
+        dataTable = $("#tbl_customer").DataTable({
+            "ajax": {
+                "url": '@Url.Action("GetCustomers","Home")',
+                "type": "GET",
+                "datatype": "json"
+            },
+            "columns": [
+                { "data": "id" },
+                {
+                    "data": "name", render: function (name, data, x) {
+                        if (x.gender == "Male")
+                            return "Mr. " + name
+                        else if (x.gender == "Female")
+                            return "Miss. " + name
+                        else
+                            return name;
+                    }
+                },
+                { "data": "email" },
+                { "data": "mobile" },
+                { "data": "gender" },
+                {
+                    "data": "id", render: function (data) {
+                        return "<a class='btn btn-success btn-sm' onclick=Popupform('@Url.Action("AddCustomers", "Home")/" + data + "') >Edit</a> <a class='btn btn-danger btn-sm' onclick=Delete(" + data + ")> Delete</a>"
+                    }
+                }
+            ]
+        });
+    });
 
-                })
-            }
+    function Popupform(url) {
+        var formDiv = $('<div/>');
+        $.get(url).done(function (response) {
+            formDiv.html(response);
+
+            Popup = formDiv.dialog({
+                autoOpen: true,
+                resizable: false,
+                title: 'Fill Customer Details',
+                height: 500,
+                width: 700,
+                close: function () {
+                    Popup.dialog('destroy').remove();
+                }
+            })
         })
-    })
+    }
+    function SubmitForm(form) {
+        $.ajax({
+            type: "POST",
+            url: form.action,
+            data: $(form).serialize(),
+            success: function (data) {
+                if (data.success) {
+                    Popup.dialog('close');
+                    dataTable.ajax.reload();
+                }
+            }
+        });
+        return false;
+    }
+    function Delete(id) {
+        if (confirm("Are You Sure to Delete this Record ?"))
+        {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("RemoveCustomer","Home")/' + id,
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                    }
+                }
+            });
+        }
+    }
+
 </script>
 
