@@ -22,25 +22,48 @@ namespace Curd_Application.Controllers
 
         public ActionResult GetCustomers() 
         {
-            var customers = entities.Customers.ToList();
-            return Json(customers, JsonRequestBehavior.AllowGet);
+            List<Customer> customers = entities.Customers.ToList<Customer>();
+            return Json(new { data = customers }, JsonRequestBehavior.AllowGet);
+        }
+        [HttpGet]
+        public ActionResult AddCustomers(int id = 0)
+        {
+            if (id == 0) 
+            {
+                return View(new Customer());
+            }
+            else
+            {
+                return View(entities.Customers.Where(e => e.id == id).FirstOrDefault<Customer>());
+            }
+        }
+
+
+        [HttpPost]
+        public ActionResult AddCustomers(Customer cust)
+        {
+            if (cust.id == 0)
+            {
+                entities.Customers.Add(cust);
+                entities.SaveChanges();
+                return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                entities.Entry(cust).State = System.Data.Entity.EntityState.Modified;
+                entities.SaveChanges();
+                return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+            }
+            
         }
 
         [HttpPost]
-        public ActionResult PostCustomers(Customer cust)
+        public ActionResult RemoveCustomer(int id)
         {
-            entities.Customers.Add(cust);
+            Customer cust = entities.Customers.Where(e => e.id == id).FirstOrDefault<Customer>();
+            entities.Customers.Remove(cust);
             entities.SaveChanges();
-            return Json(cust, JsonRequestBehavior.AllowGet);
-        }
-
-        [HttpPost]
-        public ActionResult RemoveCustomers(int id )
-        {
-            var c= entities.Customers.SingleOrDefault(e=>e.id==id);
-            entities.Customers.Remove(c);
-            entities.SaveChanges();
-            return Json(c, JsonRequestBehavior.AllowGet);
+            return Json(new { success = true }, JsonRequestBehavior.AllowGet);
         }
     }
 }
